@@ -20,13 +20,16 @@ FTBUtils
 Copyright © 2014 Ilya Dynin
 
 usage: java -jar ftbutils.jar [options]
- -checkversion <modpack version>   Checks if the recommended version
-                                   matches passed version
- -downloadserver <modpack>         Download a Modpack Server
- -getversion <modpack>             Get the recommended version of modpack
- -help                             Show this help
- -listmodpacks                     List all available modpacks
- -v                                Verbose mode
+ -checkversion <modpack> <version>   Checks if the recommended version
+                                     matches passed version
+ -downloadserver <modpack>           Download a Modpack Server
+ -getversion <modpack>               Get the recommended version of
+                                     modpack
+ -help                               Show this help
+ -listmodpacks                       List all available modpacks
+ -privatepack <packcode>             Perform the requested action in the
+                                     packcode context
+ -v                                  Verbose mode
 ```
  
 ### Examples
