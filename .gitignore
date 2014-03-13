@@ -1,0 +1,15 @@
+/.settings/
+/bin/
+*.log
+*.tmp
+*.gz
+*.jar
+*.class
+.DS_Store
+local.properties
+.classpath
+.project
+.metadata
+/target/
+dependency-reduced-pom.xml
+.README.md.html
