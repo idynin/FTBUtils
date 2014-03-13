@@ -5,6 +5,8 @@
 *.gz
 *.jar
 *.class
+*.zip
+*.part
 .DS_Store
 local.properties
 .classpath

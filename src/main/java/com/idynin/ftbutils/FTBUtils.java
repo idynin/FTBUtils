@@ -84,6 +84,8 @@ public class FTBUtils
 		addOption(oneArgOption("privatepack", "packcode",
 				"Perform the requested action in the packcode context"));
 
+		addOption(noArgOption("status", "Print the status of all CreeperHost servers"));
+
 		addOption(twoArgOption("checkversion", "modpack> <version",
 				"Checks if the recommended version matches passed version"));
 
@@ -107,6 +109,8 @@ public class FTBUtils
 			}
 			if (cmd.hasOption("help")) {
 				printHelp();
+			} else if (cmd.hasOption("status")) {
+				printCHStatus();
 			} else if (cmd.hasOption("listmodpacks")) {
 				printModpacks();
 			} else if (cmd.hasOption("getversion")) {
@@ -386,11 +390,14 @@ public class FTBUtils
 	}
 
 	private static void populateLatencies() {
+		populateLatencies(25);
+
+	}
+
+	private static void populateLatencies(final int latencyEarlyCutoff) {
 		if (!freshEdges) {
 			fetchFreshEdges();
 		}
-
-		final int latencyEarlyCuttoff = 35;
 
 		Iterator<Entry<String, SimpleEntry<String, Integer>>> iter = chEdgeMap.entrySet()
 				.iterator();
@@ -424,7 +431,7 @@ public class FTBUtils
 						lat = stop - start;
 						sum += lat;
 						count++;
-						if (lat < latencyEarlyCuttoff) {
+						if (lat < latencyEarlyCutoff) {
 							break;
 						}
 					} catch (IOException e) {
@@ -457,7 +464,7 @@ public class FTBUtils
 						temp = reqs.get(i).get();
 						chEdgeMap.put(getServerNameFromURL(temp.getKey()), temp.getValue());
 						reqs.remove(i);
-						if (temp.getValue().getValue() < latencyEarlyCuttoff) {
+						if (temp.getValue().getValue() < latencyEarlyCutoff) {
 							break;
 						}
 						latenciesPopulated = true;
@@ -473,13 +480,39 @@ public class FTBUtils
 		execpool.shutdownNow();
 	}
 
-	/**
-	 * Lightly modified from FTB net.ftb.workers.ModpackLoader
-	 * 
-	 */
 	private static void populateModpacks() {
 		ModPack.populateModpacks(getLowestLatencyServer(), modpackMetaPathBase + modpackMetaFile);
 		modpacks = ModPack.getPackArray();
+
+	}
+
+	private static void printCHStatus() {
+
+		if (!latenciesPopulated) {
+			populateLatencies(9999);
+		}
+		String format = "%-25s\t%-35s\t%11s";
+		System.out.println(String.format(format, "Server", "Address", "Latency"));
+		String name, addr;
+		int lat;
+		ArrayList<Entry<String, SimpleEntry<String, Integer>>> servers = new ArrayList<Map.Entry<String, SimpleEntry<String, Integer>>>();
+		servers.addAll(chEdgeMap.entrySet());
+		Collections.sort(servers, new Comparator<Entry<String, SimpleEntry<String, Integer>>>() {
+
+			@Override
+			public int compare(Entry<String, SimpleEntry<String, Integer>> o1,
+					Entry<String, SimpleEntry<String, Integer>> o2) {
+				return o1.getKey().compareTo(o2.getKey());
+			}
+		});
+		for (Entry<String, SimpleEntry<String, Integer>> serv : servers) {
+			name = serv.getKey();
+			addr = serv.getValue().getKey();
+			lat = serv.getValue().getValue();
+			System.out.println(String.format(format, name, addr,
+					lat == Integer.MAX_VALUE ? "Unreachable" : lat));
+
+		}
 
 	}
 
@@ -507,10 +540,13 @@ public class FTBUtils
 			populateModpacks();
 		}
 		if (modpacks.size() > 0) {
-			System.out.println("Pack Name\tAuthor\tMC Version\tPack Version");
+			String headformat = "%-35s\t%-20s\t%-10s\t%-12s";
+			String format = "%-35s\t%-20s\t%10s\t%-12s";
+			System.out.println(String.format(headformat, "Pack Name", "Author", "MC Version",
+					"Pack Version"));
 			for (ModPack mp : modpacks) {
-				System.out.println(mp.getName() + "\t" + mp.getAuthor() + "\t" + mp.getMcVersion()
-						+ "\t" + mp.getVersion() + "\t");
+				System.out.println(String.format(format, mp.getName(), mp.getAuthor(),
+						mp.getMcVersion(), mp.getVersion()));
 			}
 		} else {
 			System.out.println("No modpacks found...");
