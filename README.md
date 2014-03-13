@@ -29,6 +29,8 @@ usage: java -jar ftbutils.jar [options]
  -listmodpacks                       List all available modpacks
  -privatepack <packcode>             Perform the requested action in the
                                      packcode context
+ -status                             Print the status of all CreeperHost
+                                     servers
  -v                                  Verbose mode
 ```
  
@@ -53,4 +55,23 @@ Versions Do Not Match! New recommended version: 1.1.0
 
 java -jar ftbutils-0.0.1-SNAPSHOT.jar -checkversion monster 1.1.0
 Versions Match!
+```
+List all modpacks for a private packcode
+```sh
+java -jar target/ftbutils-0.0.1-SNAPSHOT.jar -privatepack sleepless -listmodpacks
+Pack Name                          	Author              	MC Version	Pack Version
+Sleepless Horrors                  	Sironin             	     1.6.4	1.7  
+```
+Print the status of CreeperHost server
+```sh
+java -jar target/ftbutils-0.0.1-SNAPSHOT.jar -status
+Server                   	Address                            	    Latency
+Atlanta                  	atlanta1.creeperrepo.net           	         32
+Atlanta-2                	atlanta2.creeperrepo.net           	         42
+Chicago                  	chicago2.creeperrepo.net           	Unreachable
+Grantham                 	england3.creeperrepo.net           	         92
+Los Angeles              	losangeles1.creeperrepo.net        	         82
+Maidenhead               	england1.creeperrepo.net           	         94
+Miami                    	miami1.creeperrepo.net             	         94
+Nottingham               	england2.creeperrepo.net           	         89
 ```
