@@ -4,7 +4,7 @@ A collection of command line utilities for Feed the Beast.
 
 ### Usage
 
-```sh
+```
 java -jar ftbutils-0.0.1-SNAPSHOT.jar -help
 
 88888888888 888888888888 88888888ba  88        88         88 88            
@@ -31,24 +31,23 @@ usage: java -jar ftbutils.jar [options]
  
 ### Examples
  
-- Download a modpack server 
+Download a modpack server 
 ```sh
 java -jar ftbutils-0.0.1-SNAPSHOT.jar -downloadserver direwolf20
 Downloading modpack Direwolf20 version 1.0.18 from Atlanta
 Download Progress:      130 MB/130 MB   (6 MB/sec)                      
 Downloading Direwolf20-1.0.18.zip complete!
 ```
-- Check the recommended modpack version 
+Check the recommended modpack version 
  ```sh
 java -jar ftbutils-0.0.1-SNAPSHOT.jar -getversion 'FTB Unleashed'
 FTB Unleashed recommended version: 1.1.7
 ```
-- Compare a version number to the recommended version (returns error code -1 to indicate no match)
+Compare a version number to the recommended version (returns error code -1 to indicate no match)
  ```sh
 java -jar ftbutils-0.0.1-SNAPSHOT.jar -checkversion monster 1.0.5
 Versions Do Not Match! New recommended version: 1.1.0
-```
-```sh
+
 java -jar ftbutils-0.0.1-SNAPSHOT.jar -checkversion monster 1.1.0
 Versions Match!
 ```
