@@ -59,8 +59,9 @@ public class FTBUtils
 	private static boolean latenciesPopulated = false, freshEdges = false, verbose = false;
 
 	private static final String masterServerURL = "new.creeperrepo.net";
-	private static final String modpackMetaPath = "/FTB2/static/modpacks.xml";
-	private static final String modpackPath = "/FTB2/modpacks";
+	private static final String modpackMetaPathBase = "/FTB2/static/";
+	private static String modpackMetaFile = "modpacks.xml";
+	private static String modpackPath = "/FTB2/modpacks";
 
 	private static int exitCode = 0;
 
@@ -72,8 +73,89 @@ public class FTBUtils
 		}
 	};
 
+	public static void main(String[] args)
+	{
+		addOption(oneArgOption("downloadserver", "modpack", "Download a Modpack Server"));
+		addOption(oneArgOption("getversion", "modpack", "Get the recommended version of modpack"));
+		addOption(oneArgOption("checkversion", "modpack", "Get the recommended version of modpack"));
+		addOption(noArgOption("listmodpacks", "List all available modpacks"));
+		addOption(noArgOption("help", "Show this help"));
+		addOption(noArgOption("v", "Verbose mode"));
+		addOption(oneArgOption("privatepack", "packcode",
+				"Perform the requested action in the packcode context"));
+
+		addOption(twoArgOption("checkversion", "modpack> <version",
+				"Checks if the recommended version matches passed version"));
+
+		Runtime.getRuntime().addShutdownHook(shutdownAction);
+
+		initialize();
+
+		CommandLineParser parser = new GnuParser();
+		try {
+			CommandLine cmd = parser.parse(opts, args);
+			if (cmd.hasOption("v")) {
+				verbose = true;
+			}
+			if (cmd.hasOption("privatepack")) {
+				modpackMetaFile = cmd.getOptionValue("privatepack").trim();
+				if (!modpackMetaFile.endsWith(".xml")) {
+					modpackMetaFile += ".xml";
+				}
+
+				modpackPath = modpackPath.replace("modpacks", "privatepacks");
+			}
+			if (cmd.hasOption("help")) {
+				printHelp();
+			} else if (cmd.hasOption("listmodpacks")) {
+				printModpacks();
+			} else if (cmd.hasOption("getversion")) {
+				System.out.println(getRecommendedVersion(cmd.getOptionValue("getversion")));
+			} else if (cmd.hasOption("downloadserver")) {
+				downloadModpackServer(cmd.getOptionValue("downloadserver"));
+			} else if (cmd.hasOption("checkversion")) {
+				checkVersion(cmd.getOptionValues("checkversion"));
+			} else {
+				printHelp();
+			}
+		} catch (MissingArgumentException e) {
+			System.err.println(e.getLocalizedMessage());
+			printHelp();
+		} catch (UnrecognizedOptionException e) {
+			System.err.println(e.getLocalizedMessage());
+			printHelp();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		Runtime.getRuntime().removeShutdownHook(shutdownAction);
+
+		System.exit(exitCode);
+	}
+
 	private static void addOption(Option o) {
 		opts.addOption(o);
+	}
+
+	private static void checkVersion(String[] optionValues) {
+		if (optionValues.length == 2) {
+			String vers = getRecommendedVersion(optionValues[0]);
+			if (vers != null) {
+				vers = vers.split("\t")[1].trim().replace('_', '.');
+				if (optionValues[1].replace('_', '.').equals(vers)) {
+					exitCode = 0;
+					System.out.println("Versions Match!");
+					return;
+				} else {
+					System.err.println("Versions Do Not Match! New recommended version:\t" + vers);
+					exitCode = -1;
+				}
+			}
+		} else {
+			System.err.println("Invalid number of arguments. Expected [modpack] [version]");
+			exitCode = -1;
+		}
+
 	}
 
 	private static void downloadModpackServer(String requestedModpack) {
@@ -226,9 +308,8 @@ public class FTBUtils
 		}
 		requestedModpack = requestedModpack.trim();
 		for (ModPack mp : modpacks) {
-			if (requestedModpack.equalsIgnoreCase(mp.getName().trim())) {
+			if (requestedModpack.equalsIgnoreCase(mp.getName().trim()))
 				return mp.getName() + " recommended version:\t" + mp.getVersion();
-			}
 		}
 		System.err.println("Invalid modpack: " + requestedModpack);
 		exitCode = -1;
@@ -304,102 +385,6 @@ public class FTBUtils
 
 	}
 
-	public static void main(String[] args)
-	{
-		addOption(oneArgOption("downloadserver", "modpack", "Download a Modpack Server"));
-		addOption(oneArgOption("getversion", "modpack", "Get the recommended version of modpack"));
-		addOption(oneArgOption("checkversion", "modpack", "Get the recommended version of modpack"));
-		addOption(noArgOption("listmodpacks", "List all available modpacks"));
-		addOption(noArgOption("help", "Show this help"));
-		addOption(noArgOption("v", "Verbose mode"));
-
-		addOption(twoArgOption("checkversion", "modpack version",
-				"Checks if the recommended version matches passed version"));
-
-		Runtime.getRuntime().addShutdownHook(shutdownAction);
-
-		initialize();
-
-		CommandLineParser parser = new GnuParser();
-		try {
-			CommandLine cmd = parser.parse(opts, args);
-			if (cmd.hasOption("v")) {
-				verbose = true;
-			}
-			if (cmd.hasOption("help")) {
-				printHelp();
-			} else if (cmd.hasOption("listmodpacks")) {
-				printModpacks();
-			} else if (cmd.hasOption("getversion")) {
-				System.out.println(getRecommendedVersion(cmd.getOptionValue("getversion")));
-			} else if (cmd.hasOption("downloadserver")) {
-				downloadModpackServer(cmd.getOptionValue("downloadserver"));
-			} else if (cmd.hasOption("checkversion")) {
-				checkVersion(cmd.getOptionValues("checkversion"));
-			} else {
-				printHelp();
-			}
-		} catch (MissingArgumentException e) {
-			System.err.println(e.getLocalizedMessage());
-			printHelp();
-		} catch (UnrecognizedOptionException e) {
-			System.err.println(e.getLocalizedMessage());
-			printHelp();
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-
-		Runtime.getRuntime().removeShutdownHook(shutdownAction);
-
-		System.exit(exitCode);
-	}
-
-	private static void checkVersion(String[] optionValues) {
-		if (optionValues.length == 2) {
-			String vers = getRecommendedVersion(optionValues[0]);
-			if (vers != null) {
-				vers = vers.split("\t")[1].trim().replace('_', '.');
-				if (optionValues[1].replace('_', '.').equals(vers)) {
-					exitCode = 0;
-					System.out.println("Versions Match!");
-					return;
-				} else {
-					System.err.println("Versions Do Not Match! New recommended version:\t" + vers);
-					exitCode = -1;
-				}
-			}
-		} else {
-			System.err.println("Invalid number of arguments. Expected [modpack] [version]");
-			exitCode = -1;
-		}
-
-	}
-
-	private static Option twoArgOption(String option, String argName, String description) {
-		OptionBuilder.hasArgs(2);
-		OptionBuilder.withArgName(argName);
-		OptionBuilder
-				.withDescription(description);
-		return OptionBuilder
-				.create(option);
-	}
-
-	private static Option noArgOption(String option, String description) {
-		OptionBuilder
-				.withDescription(description);
-		return OptionBuilder
-				.create(option);
-	}
-
-	private static Option oneArgOption(String option, String argName, String description) {
-		OptionBuilder.hasArg();
-		OptionBuilder.withArgName(argName);
-		OptionBuilder
-				.withDescription(description);
-		return OptionBuilder
-				.create(option);
-	}
-
 	private static void populateLatencies() {
 		if (!freshEdges) {
 			fetchFreshEdges();
@@ -472,8 +457,9 @@ public class FTBUtils
 						temp = reqs.get(i).get();
 						chEdgeMap.put(getServerNameFromURL(temp.getKey()), temp.getValue());
 						reqs.remove(i);
-						if (temp.getValue().getValue() < latencyEarlyCuttoff)
+						if (temp.getValue().getValue() < latencyEarlyCuttoff) {
 							break;
+						}
 						latenciesPopulated = true;
 					} catch (InterruptedException e) {
 						e.printStackTrace();
@@ -492,7 +478,7 @@ public class FTBUtils
 	 * 
 	 */
 	private static void populateModpacks() {
-		ModPack.populateModpacks(getLowestLatencyServer(), modpackMetaPath);
+		ModPack.populateModpacks(getLowestLatencyServer(), modpackMetaPathBase + modpackMetaFile);
 		modpacks = ModPack.getPackArray();
 
 	}
@@ -520,10 +506,14 @@ public class FTBUtils
 		if (modpacks == null) {
 			populateModpacks();
 		}
-		System.out.println("Pack Name\tAuthor\tMC Version\tPack Version");
-		for (ModPack mp : modpacks) {
-			System.out.println(mp.getName() + "\t" + mp.getAuthor() + "\t" + mp.getMcVersion()
-					+ "\t" + mp.getVersion() + "\t");
+		if (modpacks.size() > 0) {
+			System.out.println("Pack Name\tAuthor\tMC Version\tPack Version");
+			for (ModPack mp : modpacks) {
+				System.out.println(mp.getName() + "\t" + mp.getAuthor() + "\t" + mp.getMcVersion()
+						+ "\t" + mp.getVersion() + "\t");
+			}
+		} else {
+			System.out.println("No modpacks found...");
 		}
 	}
 
@@ -552,6 +542,31 @@ public class FTBUtils
 		}
 		return out;
 
+	}
+
+	private static Option noArgOption(String option, String description) {
+		OptionBuilder
+				.withDescription(description);
+		return OptionBuilder
+				.create(option);
+	}
+
+	private static Option oneArgOption(String option, String argName, String description) {
+		OptionBuilder.hasArg();
+		OptionBuilder.withArgName(argName);
+		OptionBuilder
+				.withDescription(description);
+		return OptionBuilder
+				.create(option);
+	}
+
+	private static Option twoArgOption(String option, String argName, String description) {
+		OptionBuilder.hasArgs(2);
+		OptionBuilder.withArgName(argName);
+		OptionBuilder
+				.withDescription(description);
+		return OptionBuilder
+				.create(option);
 	}
 
 }
