@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -480,10 +481,7 @@ public class ModPack {
 					e.printStackTrace();
 				}
 			}
-			try {
-				modPackStream.close();
-			} catch (IOException e) {
-			}
+			IOUtils.closeQuietly(modPackStream);
 		}
 	}
 

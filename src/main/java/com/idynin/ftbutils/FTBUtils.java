@@ -15,6 +15,7 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -75,19 +76,21 @@ public class FTBUtils
 
 	public static void main(String[] args)
 	{
-		addOption(oneArgOption("downloadserver", "modpack", "Download a Modpack Server"));
-		addOption(oneArgOption("getversion", "modpack", "Get the recommended version of modpack"));
-		addOption(oneArgOption("checkversion", "modpack", "Get the recommended version of modpack"));
-		addOption(noArgOption("listmodpacks", "List all available modpacks"));
-		addOption(noArgOption("help", "Show this help"));
-		addOption(noArgOption("v", "Verbose mode"));
-		addOption(oneArgOption("privatepack", "packcode",
-				"Perform the requested action in the packcode context"));
-
-		addOption(noArgOption("status", "Print the status of all CreeperHost servers"));
-
+		addOption(twoArgOption("downloadserver", "modpack> <version",
+				"Download a Modpack Server. \nVersion optional. \nFetches recommended version if omitted."));
+		addOption(oneArgOption("getversion", "modpack", "Get the recommended version of modpack."));
+		addOption(oneArgOption("checkversion", "modpack", "Get the recommended version of modpack."));
+		addOption(noArgOption("listmodpacks", "List all available modpacks."));
 		addOption(twoArgOption("checkversion", "modpack> <version",
-				"Checks if the recommended version matches passed version"));
+				"Checks if the recommended version matches passed version."));
+
+		addOption(oneArgOption("privatepack", "packcode",
+				"Perform the requested action in the packcode context."));
+
+		addOption(noArgOption("status", "Print the status of all CreeperHost servers."));
+
+		addOption(noArgOption("help", "Show this help."));
+		addOption(noArgOption("v", "Verbose mode."));
 
 		Runtime.getRuntime().addShutdownHook(shutdownAction);
 
@@ -116,7 +119,7 @@ public class FTBUtils
 			} else if (cmd.hasOption("getversion")) {
 				System.out.println(getRecommendedVersion(cmd.getOptionValue("getversion")));
 			} else if (cmd.hasOption("downloadserver")) {
-				downloadModpackServer(cmd.getOptionValue("downloadserver"));
+				downloadModpackServer(cmd.getOptionValues("downloadserver"));
 			} else if (cmd.hasOption("checkversion")) {
 				checkVersion(cmd.getOptionValues("checkversion"));
 			} else {
@@ -162,7 +165,19 @@ public class FTBUtils
 
 	}
 
-	private static void downloadModpackServer(String requestedModpack) {
+	private static void downloadModpackServer(String[] optionValues) {
+		String modpack, version = null;
+		if (optionValues.length >= 1) {
+			modpack = optionValues[0];
+			if (optionValues.length == 2) {
+				version = optionValues[1];
+			}
+			downloadModpackServer(modpack, version);
+		}
+
+	}
+
+	private static void downloadModpackServer(String requestedModpack, String version) {
 		File outputdir = new File(".");
 
 		if (!outputdir.canWrite()) {
@@ -176,18 +191,27 @@ public class FTBUtils
 		requestedModpack = requestedModpack.trim();
 		for (ModPack mp : modpacks) {
 			if (requestedModpack.equalsIgnoreCase(mp.getName().trim())) {
+				if (version != null && !version.equalsIgnoreCase(mp.getVersion())) {
+					if (!Arrays.asList(mp.getOldVersions()).contains(version)) {
+						System.err.println("Version " + version + " is not valid for modpack "
+								+ mp.getName());
+						System.exit(-1);
+					}
+				} else {
+					version = mp.getVersion();
+				}
 				FileOutputStream fos;
 				URL mpServerFullLocation;
 				URLConnection conn;
-				File outputFile = new File(mp.getName() + "-" + mp.getVersion()
+				File outputFile = new File(mp.getName() + "-" + version
 						+ "." + FilenameUtils.getExtension(mp.getServerUrl()));
 				for (String server : serversByAscendingLatency()) {
 					try {
 						System.out.println("Downloading modpack " + mp.getName() + " version "
-								+ mp.getVersion() + " from "
+								+ version + " from "
 								+ getServerNameFromURL(server));
 						mpServerFullLocation = new URL("http://" + server + modpackPath + "/"
-								+ mp.getDir() + "/" + mp.getVersion().replace('.', '_') + "/"
+								+ mp.getDir() + "/" + version.replace('.', '_') + "/"
 								+ mp.getServerUrl());
 						conn = mpServerFullLocation.openConnection();
 						final long filesize = conn.getContentLengthLong();
@@ -495,8 +519,8 @@ public class FTBUtils
 		System.out.println(String.format(format, "Server", "Address", "Latency"));
 		String name, addr;
 		int lat;
-		ArrayList<Entry<String, SimpleEntry<String, Integer>>> servers = new ArrayList<Map.Entry<String, SimpleEntry<String, Integer>>>();
-		servers.addAll(chEdgeMap.entrySet());
+		ArrayList<Entry<String, SimpleEntry<String, Integer>>> servers = new ArrayList<Map.Entry<String, SimpleEntry<String, Integer>>>(
+				chEdgeMap.entrySet());
 		Collections.sort(servers, new Comparator<Entry<String, SimpleEntry<String, Integer>>>() {
 
 			@Override
