@@ -214,32 +214,41 @@ public class FTBUtils
 								+ mp.getDir() + "/" + version.replace('.', '_') + "/"
 								+ mp.getServerUrl());
 						conn = mpServerFullLocation.openConnection();
-						final long filesize = conn.getContentLengthLong();
+
+						final int filesize = conn.getContentLength();
+						final String filesizeString = FileUtils.byteCountToDisplaySize(filesize);
 						printVerbose("From URL: " + mpServerFullLocation.toString());
 
 						fos = new FileOutputStream(outputFile + ".part");
 						final long start = System.currentTimeMillis();
 						CountingOutputStream cos = new CountingOutputStream(fos) {
-							String progressFormat = "Download Progress:\t%6s/%-6s\t(%s/sec)";
 
-							String message = "";
+							final String progressFormat = String.format(
+									"\r%70s\rDownload Progress:\t%%6s / %%-6s\t(%%s / sec)", " ");
+
+							String message = "", temp;
+
+							int count;
 
 							@Override
 							protected synchronized void beforeWrite(int n) {
 								super.beforeWrite(n);
 
-								message = String.format(
+								count = getCount();
+
+								temp = String.format(
 										progressFormat,
-										FileUtils.byteCountToDisplaySize(getCount()),
-										FileUtils.byteCountToDisplaySize(filesize),
-										FileUtils.byteCountToDisplaySize(getCount()
+										FileUtils.byteCountToDisplaySize(count),
+										filesizeString,
+										FileUtils.byteCountToDisplaySize(count
 												/ (System.currentTimeMillis() - start) * 1000));
 
-								System.out
-										.print("\r                                      "
-												+ "                                   \r");
-								System.out.print(message);
+								if (!message.equals(temp)) {
+									message = temp;
+									System.out.print(message);
+								}
 							}
+
 						};
 						if (outputFile.exists() && !outputFile.delete()) {
 							System.err.println("Unable to delete modpack file "
