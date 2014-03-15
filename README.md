@@ -1,6 +1,7 @@
 # FTBUtils
 
 A collection of command line utilities for Feed the Beast.
+[![Build Status](https://travis-ci.org/idynin/FTBUtils.png?branch=master)](https://travis-ci.org/idynin/FTBUtils)
 
 ### Usage
 
