@@ -78,6 +78,8 @@ public class FTBUtils
 	{
 		addOption(twoArgOption("downloadserver", "modpack> <version",
 				"Download a Modpack Server. \nVersion optional. \nFetches recommended version if omitted."));
+		addOption(twoArgOption("downloadmodpack", "modpack> <version",
+				"Download a Modpack. \nVersion optional. \nFetches recommended version if omitted."));
 		addOption(oneArgOption("getversion", "modpack", "Get the recommended version of modpack."));
 		addOption(oneArgOption("checkversion", "modpack", "Get the recommended version of modpack."));
 		addOption(noArgOption("listmodpacks", "List all available modpacks."));
@@ -119,7 +121,9 @@ public class FTBUtils
 			} else if (cmd.hasOption("getversion")) {
 				System.out.println(getRecommendedVersion(cmd.getOptionValue("getversion")));
 			} else if (cmd.hasOption("downloadserver")) {
-				downloadModpackServer(cmd.getOptionValues("downloadserver"));
+				downloadModpack(cmd.getOptionValues("downloadserver"), true);
+			} else if (cmd.hasOption("downloadmodpack")) {
+				downloadModpack(cmd.getOptionValues("downloadmodpack"), false);
 			} else if (cmd.hasOption("checkversion")) {
 				checkVersion(cmd.getOptionValues("checkversion"));
 			} else {
@@ -165,19 +169,20 @@ public class FTBUtils
 
 	}
 
-	private static void downloadModpackServer(String[] optionValues) {
+	private static void downloadModpack(String[] optionValues, boolean server) {
 		String modpack, version = null;
 		if (optionValues.length >= 1) {
 			modpack = optionValues[0];
 			if (optionValues.length == 2) {
 				version = optionValues[1];
 			}
-			downloadModpackServer(modpack, version);
+			downloadModpackServer(modpack, version, server);
 		}
 
 	}
 
-	private static void downloadModpackServer(String requestedModpack, String version) {
+	private static void downloadModpackServer(String requestedModpack, String version,
+			boolean server) {
 		File outputdir = new File(".");
 
 		if (!outputdir.canWrite()) {
@@ -203,16 +208,18 @@ public class FTBUtils
 				FileOutputStream fos;
 				URL mpServerFullLocation;
 				URLConnection conn;
-				File outputFile = new File(mp.getName() + "-" + version
-						+ "." + FilenameUtils.getExtension(mp.getServerUrl()));
-				for (String server : serversByAscendingLatency()) {
+				String targetURL = server ? mp.getServerUrl() : mp.getUrl();
+				File outputFile = new File(mp.getName() + (server ? "-server" : "") + "-" + version
+						+ "." + FilenameUtils.getExtension(targetURL));
+				for (String chServer : serversByAscendingLatency()) {
 					try {
-						System.out.println("Downloading modpack " + mp.getName() + " version "
+						System.out.println("Downloading modpack " + (server ? "server " : "")
+								+ mp.getName() + " version "
 								+ version + " from "
-								+ getServerNameFromURL(server));
-						mpServerFullLocation = new URL("http://" + server + modpackPath + "/"
+								+ getServerNameFromURL(chServer));
+						mpServerFullLocation = new URL("http://" + chServer + modpackPath + "/"
 								+ mp.getDir() + "/" + version.replace('.', '_') + "/"
-								+ mp.getServerUrl());
+								+ targetURL);
 						conn = mpServerFullLocation.openConnection();
 
 						final int filesize = conn.getContentLength();
@@ -260,7 +267,8 @@ public class FTBUtils
 						System.out.println("\nDownloading " + outputFile.getName() + " complete!");
 						return;
 					} catch (IOException e) {
-						System.err.println("Error downloading " + mp.getName() + " from " + server);
+						System.err.println("Error downloading " + mp.getName() + " from "
+								+ chServer);
 						continue;
 					}
 

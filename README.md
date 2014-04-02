@@ -21,31 +21,43 @@ FTBUtils
 Copyright © 2014 Ilya Dynin
 
 usage: java -jar ftbutils.jar [options]
- -checkversion <modpack> <version>     Checks if the recommended version
-                                       matches passed version.
- -downloadserver <modpack> <version>   Download a Modpack Server.
-                                       Version optional.
-                                       Fetches recommended version if
-                                       omitted.
- -getversion <modpack>                 Get the recommended version of
-                                       modpack.
- -help                                 Show this help.
- -listmodpacks                         List all available modpacks.
- -privatepack <packcode>               Perform the requested action in the
-                                       packcode context.
- -status                               Print the status of all CreeperHost
-                                       servers.
- -v                                    Verbose mode.
+ -checkversion <modpack> <version>      Checks if the recommended version
+                                        matches passed version.
+ -downloadmodpack <modpack> <version>   Download a Modpack.
+                                        Version optional.
+                                        Fetches recommended version if
+                                        omitted.
+ -downloadserver <modpack> <version>    Download a Modpack Server.
+                                        Version optional.
+                                        Fetches recommended version if
+                                        omitted.
+ -getversion <modpack>                  Get the recommended version of
+                                        modpack.
+ -help                                  Show this help.
+ -listmodpacks                          List all available modpacks.
+ -privatepack <packcode>                Perform the requested action in
+                                        the packcode context.
+ -status                                Print the status of all
+                                        CreeperHost servers.
+ -v                                     Verbose mode.
+
 ```
  
 ### Examples
  
 Download a modpack server 
 ```sh
-java -jar ftbutils-0.0.1-SNAPSHOT.jar -downloadserver direwolf20
-Downloading modpack Direwolf20 version 1.0.18 from Atlanta
-Download Progress:      130 MB/130 MB   (6 MB/sec)                      
-Downloading Direwolf20-1.0.18.zip complete!
+java -jar target/ftbutils-0.0.1-SNAPSHOT.jar -downloadserver 'FTB Lite'
+Downloading modpack server FTB Lite version 1.2.3 from Atlanta
+Download Progress:       21 MB / 21 MB  (5 MB / sec)                  
+Downloading FTB Lite-server-1.2.3.zip complete!
+```
+Download a modpack for a particular version
+```sh
+java -jar target/ftbutils-0.0.1-SNAPSHOT.jar -downloadmodpack direwolf20 1.0.15
+Downloading modpack Direwolf20 version 1.0.15 from Atlanta
+Download Progress:      126 MB / 126 MB (8 MB / sec)                  
+Downloading Direwolf20-1.0.15.zip complete!
 ```
 Check the recommended modpack version 
  ```sh
