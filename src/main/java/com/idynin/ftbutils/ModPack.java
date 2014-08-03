@@ -396,8 +396,11 @@ public class ModPack {
 
   /**
    * Lightly modified from FTB net.ftb.workers.ModpackLoader
+   * 
+   * @param modPackFilter
    */
-  public static void populateModpacks(String server, String modpackMetaPath) {
+  public static void populateModpacks(String server, String modpackMetaPath,
+      ModPackFilter modPackFilter) {
     InputStream modPackStream = null;
     if (modPackStream == null) {
       try {
@@ -422,29 +425,34 @@ public class ModPack {
         return;
       }
       NodeList modPacks = doc.getElementsByTagName("modpack");
+      ModPack mp;
       for (int i = 0; i < modPacks.getLength(); i++) {
         Node modPackNode = modPacks.item(i);
         NamedNodeMap modPackAttr = modPackNode.getAttributes();
         try {
-          ModPack.addPack(new ModPack(modPackAttr.getNamedItem("name").getTextContent(),
-              modPackAttr.getNamedItem("author").getTextContent(), modPackAttr.getNamedItem(
-                  "version").getTextContent(), modPackAttr.getNamedItem("logo").getTextContent(),
-              modPackAttr.getNamedItem("url").getTextContent(), modPackAttr.getNamedItem("image")
+          mp =
+              new ModPack(modPackAttr.getNamedItem("name").getTextContent(), modPackAttr
+                  .getNamedItem("author").getTextContent(), modPackAttr.getNamedItem("version")
+                  .getTextContent(), modPackAttr.getNamedItem("logo").getTextContent(), modPackAttr
+                  .getNamedItem("url").getTextContent(), modPackAttr.getNamedItem("image")
                   .getTextContent(), modPackAttr.getNamedItem("dir").getTextContent(), modPackAttr
                   .getNamedItem("mcVersion").getTextContent(), modPackAttr.getNamedItem(
                   "serverPack").getTextContent(), modPackAttr.getNamedItem("description")
                   .getTextContent(), modPackAttr.getNamedItem("mods") != null ? modPackAttr
-                  .getNamedItem("mods").getTextContent() : "", modPackAttr
-                  .getNamedItem("oldVersions") != null ? modPackAttr.getNamedItem("oldVersions")
-                  .getTextContent() : "",
-              modPackAttr.getNamedItem("animation") != null ? modPackAttr.getNamedItem("animation")
-                  .getTextContent() : "",
-              modPackAttr.getNamedItem("maxPermSize") != null ? modPackAttr.getNamedItem(
-                  "maxPermSize").getTextContent() : "", (ModPack.getPackArray().isEmpty() ? 0
-                  : ModPack.getPackArray().size()), false, "modpacks.xml", modPackAttr
-                  .getNamedItem("bundledMap") != null ? modPackAttr.getNamedItem("bundledMap")
-                  .getTextContent() : "", modPackAttr.getNamedItem("customTP") != null ? true
-                  : false));
+                  .getNamedItem("mods").getTextContent() : "",
+                  modPackAttr.getNamedItem("oldVersions") != null ? modPackAttr.getNamedItem(
+                      "oldVersions").getTextContent() : "",
+                  modPackAttr.getNamedItem("animation") != null ? modPackAttr.getNamedItem(
+                      "animation").getTextContent() : "",
+                  modPackAttr.getNamedItem("maxPermSize") != null ? modPackAttr.getNamedItem(
+                      "maxPermSize").getTextContent() : "", (ModPack.getPackArray().isEmpty() ? 0
+                      : ModPack.getPackArray().size()), false, "modpacks.xml",
+                  modPackAttr.getNamedItem("bundledMap") != null ? modPackAttr.getNamedItem(
+                      "bundledMap").getTextContent() : "",
+                  modPackAttr.getNamedItem("customTP") != null ? true : false);
+          if (modPackFilter == null || modPackFilter.accept(mp)) {
+            ModPack.addPack(mp);
+          }
         } catch (Exception e) {
           e.printStackTrace();
         }

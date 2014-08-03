@@ -61,6 +61,7 @@ public class FTBUtils {
   private static final String masterServerURL = "new.creeperrepo.net";
   private static final String modpackMetaPathBase = "/FTB2/static/";
   private static String modpackMetaFile = "modpacks.xml";
+  private static String thirdpartyMetaFile = "thirdparty.xml";
   private static String modpackPath = "/FTB2/modpacks";
 
   private static int exitCode = 0;
@@ -516,7 +517,21 @@ public class FTBUtils {
   }
 
   private static void populateModpacks() {
-    ModPack.populateModpacks(getLowestLatencyServer(), modpackMetaPathBase + modpackMetaFile);
+    ModPack.populateModpacks(getLowestLatencyServer(), modpackMetaPathBase + modpackMetaFile,
+        new ModPackFilter() {
+          @Override
+          public boolean accept(ModPack modpack) {
+            return modpack.getAuthor().equalsIgnoreCase("The FTB Team");
+          }
+        });
+
+    ModPack.populateModpacks(getLowestLatencyServer(), modpackMetaPathBase + thirdpartyMetaFile,
+        new ModPackFilter() {
+          @Override
+          public boolean accept(ModPack modpack) {
+            return true;
+          }
+        });
     modpacks = ModPack.getPackArray();
 
   }
